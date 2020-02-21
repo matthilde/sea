@@ -24,11 +24,11 @@ usage () {
     printf "Usage: sea [OPTION] [ACTION] <ARGS>\n\n"
     printf "Options: TBA\n\n"
     printf "Actions:\n"
-    printf "    i,install <pkg>       | install package(s)\n"
-    printf "   	q,query <mode> <args> | search for package(s)\n"
-    printf "   	r,remove <pkg>        | remove package(s)\n"
-    printf "   	s,submit <file>	      | upload package for approval\n"
-    printf "   	u,upgrade [pkg]	      | update package(s) to latest versions\n"
+    printf "    i, install <pkg>       | install package(s)\n"
+    printf "   	q, query <mode> <args> | search for package(s)\n"
+    printf "   	r, remove <pkg>        | remove package(s)\n"
+    printf "   	s, submit <file>       | upload package for approval\n"
+    printf "   	u, upgrade [pkg]       | update package(s) to latest versions\n"
     printf "\n"
 }
 
@@ -42,15 +42,26 @@ pkg_extract () {
 pkg_depends () {
     # Resolves dependencies of a package.
     # Assumes that the directory has been created, and the PWD is the directory.
-    for line in depends; do
-        if [ "$(command -v $line)"]; then
-            log "Dependency $line present."
-        else
-            warning "Dependency $line missing."
-        fi
-    done
+    if test -e depends; then
+        for line in depends; do
+            if [ "$(command -v $line)" ]; then
+                log "Dependency $line present."
+            else
+                warning "Dependency $line missing."
+            fi
+        done
+    else
+        log "No dependency file found."
+    fi
     log "Would you like to continue? Press Enter to continue or Ctrl+C to exit."
     read -r _
     # Above is a prompt for continuing or exiting.
 }
 
+pkg_install () {
+    #Given one argument, the tarball for a package.
+    pkg_extract "$1" || die "Unable to extract package."
+    pkg_depends
+    # Assumption is at this point, we are in the directory.
+}
+usage
