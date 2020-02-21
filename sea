@@ -20,16 +20,26 @@ die () {
 
 usage () {
     # prints the usage of a command depending on the arguments
-    printf "\n"
-    printf "Usage: sea [OPTION] [ACTION] <ARGS>\n\n"
-    printf "Options: TBA\n\n"
-    printf "Actions:\n"
-    printf "    i, install <pkg>       | install package(s)\n"
-    printf "    q, query <mode> <args> | search for package(s)\n"
-    printf "    r, remove <pkg>        | remove package(s)\n"
-    printf "    s, submit <file>       | upload package for approval\n"
-    printf "    u, upgrade [pkg]       | update package(s) to latest versions\n"
-    printf "\n"
+    cat <<EOF
+
+Usage: sea [OPTION] [ACTION] <ARGS>
+
+Options: TBA
+
+Actions:
+    i, install <pkg>     | install package(s)
+    o, options           | configure sea
+    p, patch <pkg>	 | apply a patch to a package
+    q, query <mode> args | search for package(s)
+    r, remove <pkg>      | remove package(s)
+    s, submit <file>     | upload package for approval
+    u, upgrade [pkg]     | update package(s) to latest versions
+EOF
+}
+
+args () {
+    # manually handles the arguments of the command
+
 }
 
 pkg_extract () {
