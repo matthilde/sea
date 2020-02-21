@@ -1,0 +1,13 @@
+#!/bin/sh -e
+
+# POSIX Shellscript Package Manager
+
+log () {
+    # print fancy outputs
+    printf "%b\n" "\u001b[36m[#] \u001b[0m$1"
+}
+
+warning () {
+    # print fancy warnings
+    printf "%b\n" "\u001b[35m[!] \u001b[33m\u001b[1m$1"
+}
