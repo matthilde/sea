@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-# POSIX Shellscript Package Manager
+# sea, the POSIX shell-script package manager
 
 log () {
     # print fancy outputs
