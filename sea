@@ -25,10 +25,10 @@ usage () {
     printf "Options: TBA\n\n"
     printf "Actions:\n"
     printf "    i,install <pkg>       | install package(s)\n"
-    printf "    q,query <mode> <args> | search for package(s)\n"
-    printf "    r,remove <pkg>        | remove package(s)\n"
-    printf "    s,submit <file>       | upload package for approval\n"
-    printf "    u,upgrade [pkg]       | update package(s) to latest versions\n"
+    printf "   	q,query <mode> <args> | search for package(s)\n"
+    printf "   	r,remove <pkg>        | remove package(s)\n"
+    printf "   	s,submit <file>	      | upload package for approval\n"
+    printf "   	u,upgrade [pkg]	      | update package(s) to latest versions\n"
     printf "\n"
 }
 
