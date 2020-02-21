@@ -37,11 +37,6 @@ Actions:
 EOF
 }
 
-args () {
-    # manually handles the arguments of the command
-
-}
-
 pkg_extract () {
     # extracts a package to a working directory, changes directories to said working directory
     mkdir -p "/tmp/$$/$1" || die "Unable to create working directory. Exiting."
