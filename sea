@@ -34,6 +34,7 @@ Actions:
     r, remove <pkg>      | remove package(s)
     s, submit <file>     | upload package for approval
     u, upgrade [pkg]     | update package(s) to latest versions
+    
 EOF
 }
 
