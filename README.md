@@ -1,2 +1,2 @@
-# pspm
+# sea
 POSIX Shell Package Manager
