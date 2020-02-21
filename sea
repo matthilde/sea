@@ -9,7 +9,35 @@ log () {
 
 warning () {
     # print fancy warnings
-    printf "%b\n" "\u001b[35m[!] \u001b[33m\u001b[1m$1"
+    printf "%b\n" "\u001b[36m[!] \u001b[33m\u001b[1m$1"
+}
+
+die () {
+    # exit program with 1
+    printf "%b\n" "\u001b[35m[x] \u001b[1m\u001b[31m$1"
+    exit 1
+}
+
+pkg_extract () {
+    # extracts a package to a working directory, changes directories to said working directory
+    mkdir -p "/tmp/$$/$1" || die "Unable to create working directory. Exiting."
+    tar -vxf "$1.tar.gz" -C "/tmp/$$/$1"
+    cd "/tmp/$$/$1"
+}
+
+pkg_depends () {
+    # Resolves dependencies of a package.
+    # Assumes that the directory has been created, and the PWD is the directory.
+    for line in depends; do
+        if [ "$(command -v $line)"]; then
+            log "Dependency $line present."
+        else
+            warning "Dependency $line missing."
+        fi
+    done
+    log "Would you like to continue? Press Enter to continue or Ctrl+C to exit."
+    read -r _
+    # Above is a prompt for continuing or exiting.
 }
 
 usage () {
