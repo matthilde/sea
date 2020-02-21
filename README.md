@@ -41,6 +41,11 @@ Query one package
 sea q package
 ```
 
+Query packages based on a tag
+```
+sea q -t "util"
+```
+
 ### Submit packages
 
 ```
