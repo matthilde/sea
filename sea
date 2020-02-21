@@ -63,5 +63,15 @@ pkg_install () {
     pkg_extract "$1" || die "Unable to extract package."
     pkg_depends
     # Assumption is at this point, we are in the directory.
+    while test -e "$SEA_INSTALL/$1"; do
+        log "The name of this package is taken. Please give another."
+        read -r $1
+    done
+    mkdir -p "$SEA_DATABASE/meta/$1"
+    cp depends "$SEA_DATABASE/meta/$1"
+    cp manifest "$SEA_DATABASE/meta/$1"
+    cp tags "$SEA_DATABASE/meta/$1"
+    printf "$SEA_INSTALL/$1" > "$SEA_DATABASE/meta/$1/location"
+    mv "$1" "$SEA_INSTALL"
 }
-usage
+
