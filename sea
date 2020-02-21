@@ -53,5 +53,3 @@ usage () {
     printf "   	u,upgrade [pkg]	      | update package(s) to latest versions\n"
     printf "\n"
 }
-
-usage
