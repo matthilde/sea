@@ -18,6 +18,20 @@ die () {
     exit 1
 }
 
+usage () {
+    # prints the usage of a command depending on the arguments
+    printf "\n"
+    printf "Usage: sea [OPTION] [ACTION] <ARGS>\n\n"
+    printf "Options: TBA\n\n"
+    printf "Actions:\n"
+    printf "    i,install <pkg>       | install package(s)\n"
+    printf "   	q,query <mode> <args> | search for package(s)\n"
+    printf "   	r,remove <pkg>        | remove package(s)\n"
+    printf "   	s,submit <file>	      | upload package for approval\n"
+    printf "   	u,upgrade [pkg]	      | update package(s) to latest versions\n"
+    printf "\n"
+}
+
 pkg_extract () {
     # extracts a package to a working directory, changes directories to said working directory
     mkdir -p "/tmp/$$/$1" || die "Unable to create working directory. Exiting."
@@ -40,16 +54,3 @@ pkg_depends () {
     # Above is a prompt for continuing or exiting.
 }
 
-usage () {
-    # prints the usage of a command depending on the arguments
-    printf "\n"
-    printf "Usage: sea [OPTION] [ACTION] <ARGS>\n\n"
-    printf "Options: TBA\n\n"
-    printf "Actions:\n"
-    printf "    i,install <pkg>       | install package(s)\n"
-    printf "   	q,query <mode> <args> | search for package(s)\n"
-    printf "   	r,remove <pkg>        | remove package(s)\n"
-    printf "   	s,submit <file>	      | upload package for approval\n"
-    printf "   	u,upgrade [pkg]	      | update package(s) to latest versions\n"
-    printf "\n"
-}
