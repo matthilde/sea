@@ -111,7 +111,7 @@ pkg_submit () {
 
     if [ -e "$2" ]; then
         # Stores the return code
-        htmlret=$(curl -Ffile=@"$2" "$3/submit/$1" -s -o "/tmp/$$/$1" -w '%{http_code}') || die "Unable to submit"
+        htmlret=$(curl -Ffile=@"$2" "$drepo/submit/$1" -s -o "/tmp/$$/$1" -w '%{http_code}') || die "Unable to submit"
         if [ "$htmlret" == "200" ]; then
             log "Successfully submitted the package!"
         else;
@@ -125,5 +125,5 @@ pkg_submit () {
 }
 
 pkg_get () {
-    
+       
 }
