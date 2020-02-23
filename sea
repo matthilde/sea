@@ -90,7 +90,7 @@ pkg_makepkg () {
     fi
 
     if [ [ -e depends ] && [ -e manifest ] && [ -e package ] && [ -e tags ] ]; then
-        tar -czvf "$1" depends manifest package tags
+        tar -czvf "$1" depends manifest package tags || die "Unable to create archive."
     else
         # If something is missing, abort.
         die "Some package files are missing. Make sure all files are present."
@@ -99,6 +99,8 @@ pkg_makepkg () {
     # chdir back into the origin folder.
     cd "$bfolder"
 }
+
+
 
 pkg_submit () {
     # submits package
@@ -115,15 +117,48 @@ pkg_submit () {
         if [ "$htmlret" == "200" ]; then
             log "Successfully submitted the package!"
         else;
-            echo "ERROR $htmlret"
-            cat "/tmp/$$/$1"
+            die "ERROR $htmlret\n $(cat /tmp/$$/$1)"
         fi
     else
         # Dies if there is no specified file.
         die "File not specified."
     fi
+
+    rm -rf /tmp/$$/$1
 }
 
 pkg_get () {
-       
+    # Fetches a package.
+    # If $3 exists else pick default repo.
+    if [ $2 ]; then
+        drepo="$2"
+    else
+        drepo="https://sea.h3liu.ml"
+    fi
+
+    packages=""
+    # Get the categories.
+    htmlret=$(curl "$drepo/repo/" -s -o "/tmp/$$/categories" -w '%{http_code}') || die "Unable to fetch the repo categories."
+    
+    if [ "$htmlret" != "200" ]; then
+        die "ERROR $htmlret\n $(cat /tmp/$$/cateogries)"
+    fi
+
+    # Gets all the packages available
+    for x in /tmp/$$/categories; do
+        htmlret=$(curl "$drepo/repo/$x/" -s -o "/tmp/$$/packages" -w '%{http_code}') || die "Unable to fetch the repo packages."
+        if [ "$htmlret" != "200" ]; then
+            die "ERROR $htmlret\n $(cat /tmp/$$/packages)"
+        fi
+
+        for y in /tmp/$$/categories; do
+            if [ "$y" == "$1" ]; then
+                packages=$packages"$x "
+                break
+            fi
+        done
+    done
+
+    # Return nothing if there are no categories available for the package.
+    printf "$packages"
 }
