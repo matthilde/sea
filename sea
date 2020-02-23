@@ -81,3 +81,49 @@ pkg_install () {
     mv "$1" "$SEA_INSTALL"
 }
 
+pkg_makepkg () {
+    # Verifies if all the files are there then make a package.
+    # The second argument must be the root dir of the files. chdir into it if so.
+    bfolder=$(pwd)
+    if [ $2 ]; then
+        cd "$2" || warning "Couldn't chdir into the target folder."
+    fi
+
+    if [ [ -e depends ] && [ -e manifest ] && [ -e package ] && [ -e tags ] ]; then
+        tar -czvf "$1" depends manifest package tags
+    else
+        # If something is missing, abort.
+        die "Some package files are missing. Make sure all files are present."
+    fi
+
+    # chdir back into the origin folder.
+    cd "$bfolder"
+}
+
+pkg_submit () {
+    # submits package
+    # If $3 exists else pick default repo.
+    if [ $3 ]; then
+        drepo="$3"
+    else
+        drepo="https://sea.h3liu.ml"
+    fi
+
+    if [ -e "$2" ]; then
+        # Stores the return code
+        htmlret=$(curl -Ffile=@"$2" "$3/submit/$1" -s -o "/tmp/$$/$1" -w '%{http_code}') || die "Unable to submit"
+        if [ "$htmlret" == "200" ]; then
+            log "Successfully submitted the package!"
+        else;
+            echo "ERROR $htmlret"
+            cat "/tmp/$$/$1"
+        fi
+    else
+        # Dies if there is no specified file.
+        die "File not specified."
+    fi
+}
+
+pkg_get () {
+    
+}
