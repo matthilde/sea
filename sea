@@ -29,7 +29,7 @@ Options: TBA
 Actions:
     i, install <pkg>     | install package(s)
     o, options           | configure sea
-    p, patch <pkg>	 | apply a patch to a package
+    p, patch <pkg>       | apply a patch to a package
     q, query <mode> args | search for package(s)
     r, remove <pkg>      | remove package(s)
     s, submit <file>     | upload package for approval
@@ -162,3 +162,5 @@ pkg_get () {
     # Return nothing if there are no categories available for the package.
     printf "$packages"
 }
+
+usage
