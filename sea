@@ -162,5 +162,3 @@ pkg_get () {
     # Return nothing if there are no categories available for the package.
     printf "$packages"
 }
-
-usage
