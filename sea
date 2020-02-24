@@ -7,7 +7,7 @@ log () {
     printf "%b\n" "\u001b[36m[#] \u001b[0m$1"
 }
 
-warning () {
+warn () {
     # print fancy warnings
     printf "%b\n" "\u001b[36m[!] \u001b[33m\u001b[1m$1"
 }
@@ -41,11 +41,7 @@ EOF
 pkg_get () {
     # Fetches a package.
     # The default repo is used, unless $3 exists.
-    if [ $2 ]; then
-        drepo="$2"
-    else
-        drepo="https://sea.h3liu.ml"
-    fi
+    drepo=${2:-'https://sea.h3liu.ml'}
 
     packages=""
     # Get the categories.
@@ -89,7 +85,7 @@ pkg_depends () {
             if [ "$(command -v $line)" ]; then
                 log "Dependency $line present."
             else
-                warning "Dependency $line missing."
+                warn "Dependency $line missing."
             fi
         done
     else
@@ -121,7 +117,7 @@ pkg_makepkg () (
     # Checks if all files neccessary to make a package are present.
     # $1 is [blank], $2 is the directory that the package would be built from.
     # This function runs within a subshell to avoid messing with $PWD.
-    cd "$2" || warning "Couldn't change directories into the target folder."
+    cd "$2" || warn "Couldn't change directories into the target folder."
 
     if [ [ -e depends ] && [ -e manifest ] && [ -e package ] && [ -e tags ] ]; then
         tar -czvf "$1" depends manifest package tags || die "Unable to create archive."
@@ -133,11 +129,7 @@ pkg_makepkg () (
 pkg_submit () {
     # Submit a package to the default repository, unless $3 exists.
     # In which case, submit to the repository $3.
-    if [ $3 ]; then
-        drepo="$3"
-    else
-        drepo="https://sea.h3liu.ml"
-    fi
+    drepo=${3:-'https://sea.h3liu.ml'}
 
     if [ -e "$2" ]; then
         # Store the return code of the submit request.
