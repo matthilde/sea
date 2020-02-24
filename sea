@@ -40,7 +40,7 @@ EOF
 
 pkg_get () {
     # Fetches a package.
-    # If $3 exists else pick default repo.
+    # The default repo is used, unless $3 exists.
     if [ $2 ]; then
         drepo="$2"
     else
@@ -101,10 +101,10 @@ pkg_depends () {
 }
 
 pkg_install () {
-    #Given one argument, the tarball for a package.
+    # Given one argument, the tarball for a package.
     pkg_extract "$1" || die "Unable to extract package."
     pkg_depends
-    # Assumption is at this point, we are in the directory.
+    # Assumption is at this point, we are in the install directory.
     while test -e "$SEA_INSTALL/$1"; do
         log "The name of this package is taken. Please give another."
         read -r $1
@@ -118,9 +118,9 @@ pkg_install () {
 }
 
 pkg_makepkg () (
-    # Verifies if all the files are there then make a package.
-    # The second argument must be the root dir of the files. chdir into it if so.
-    # This function runs within a subshell to not require messing with PWD.
+    # Checks if all files neccessary to make a package are present.
+    # $1 is [blank], $2 is the directory that the package would be built from.
+    # This function runs within a subshell to avoid messing with $PWD.
     cd "$2" || warning "Couldn't change directories into the target folder."
 
     if [ [ -e depends ] && [ -e manifest ] && [ -e package ] && [ -e tags ] ]; then
@@ -131,8 +131,8 @@ pkg_makepkg () (
 )
 
 pkg_submit () {
-    # submits package
-    # Submit to the default repository, unless $3 exists.
+    # Submit a package to the default repository, unless $3 exists.
+    # In which case, submit to the repository $3.
     if [ $3 ]; then
         drepo="$3"
     else
@@ -140,7 +140,7 @@ pkg_submit () {
     fi
 
     if [ -e "$2" ]; then
-        # Stores the return code
+        # Store the return code of the submit request.
         htmlret=$(curl -Ffile=@"$2" "$drepo/submit/$1" -s -o "/tmp/$$/$1" -w '%{http_code}') || die "Unable to submit"
         if [ "$htmlret" == "200" ]; then
             log "Successfully submitted the package!"
@@ -154,4 +154,3 @@ pkg_submit () {
 
     rm -rf /tmp/$$/$1
 }
-
