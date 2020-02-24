@@ -115,7 +115,7 @@ pkg_install () {
 
 pkg_makepkg () (
     # Checks if all files neccessary to make a package are present.
-    # $1 is [blank], $2 is the directory that the package would be built from.
+    # $1 is archive name, $2 is the directory that the package would be built from.
     # This function runs within a subshell to avoid messing with $PWD.
     cd "$2" || warn "Couldn't change directories into the target folder."
 
@@ -130,6 +130,9 @@ pkg_submit () {
     # Submit a package to the default repository, unless $3 exists.
     # In which case, submit to the repository $3.
     drepo=${3:-'https://sea.h3liu.ml'}
+    # $1 - package name
+    # $2 - archive path
+    # $3 - repo url
 
     if [ -e "$2" ]; then
         # Store the return code of the submit request.
