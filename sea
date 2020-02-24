@@ -117,28 +117,22 @@ pkg_install () {
     mv "$1" "$SEA_INSTALL"
 }
 
-pkg_makepkg () {
+pkg_makepkg () (
     # Verifies if all the files are there then make a package.
     # The second argument must be the root dir of the files. chdir into it if so.
-    bfolder=$(pwd)
-    if [ $2 ]; then
-        cd "$2" || warning "Couldn't chdir into the target folder."
-    fi
+    # This function runs within a subshell to not require messing with PWD.
+    cd "$2" || warning "Couldn't change directories into the target folder."
 
     if [ [ -e depends ] && [ -e manifest ] && [ -e package ] && [ -e tags ] ]; then
         tar -czvf "$1" depends manifest package tags || die "Unable to create archive."
     else
-        # If something is missing, abort.
-        die "Some package files are missing. Make sure all files are present."
+        die "Some neccessary package files are missing. Make sure all files are present."
     fi
-
-    # chdir back into the origin folder.
-    cd "$bfolder"
-}
+)
 
 pkg_submit () {
     # submits package
-    # If $3 exists else pick default repo.
+    # Submit to the default repository, unless $3 exists.
     if [ $3 ]; then
         drepo="$3"
     else
@@ -160,3 +154,4 @@ pkg_submit () {
 
     rm -rf /tmp/$$/$1
 }
+
