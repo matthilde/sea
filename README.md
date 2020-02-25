@@ -18,11 +18,6 @@ From the repos
 sea i package
 ```
 
-Locally
-```
-sea i --local package.tar.gz
-```
-
 ### Remove a package
 
 ```
