@@ -39,56 +39,6 @@ EOF
     exit 0 # Prevent anything further from happning when this is called.
 }
 
-flags () {
-    command_flags=""
-    for arg in "$@"; do
-        case $arg in
-            ---*) ;; # Not too long!
-            --*) [ -z "${command_flags}" ] && command_flags="${arg}" || command_flags="${command_flags}, ${arg}" ;;
-            -*)
-                # Check that flags without args that use the shortened syntax (-abcdef...) are accounted for.
-                # Short flags should never go beyond 2 chars in theory.
-                [ "${#arg}" -gt 2 ] && {
-                    # Split the various letters into their own arguments
-                    true;
-                }
-            ;;
-
-            *) ;; # If it's not a flag, don't do anything
-        esac
-    done
-}
-
-args () {
-    # Argument interpreter.
-    # $1 is always an action.
-    case "$1" in
-        i|install)
-            shift 1
-            # Place install here.
-        ;;
-        u|upgrade)
-            shift 1
-            # Place upgrade here.
-        ;;
-        r|remove)
-            shift 1
-            # Place remove here.
-        ;;
-        p|patch)
-            shift 1
-            # Place patch here.
-        ;;
-        h|help)
-            usage
-        ;;
-        *)
-            usage
-            die "Not a valid action."
-        ;;
-    esac
-}
-
 pkg_get () {
     # Fetches a package.
     # The default repo is used, unless $3 exists.
@@ -194,4 +144,54 @@ pkg_submit () {
     fi
 
     rm -rf /tmp/$$/"$1"
+}
+
+flags () {
+    command_flags=""
+    for arg in "$@"; do
+        case $arg in
+            ---*) ;; # Not too long!
+            --*) [ -z "${command_flags}" ] && command_flags="${arg}" || command_flags="${command_flags}, ${arg}" ;;
+            -*)
+                # Check that flags without args that use the shortened syntax (-abcdef...) are accounted for.
+                # Short flags should never go beyond 2 chars in theory.
+                [ "${#arg}" -gt 2 ] && {
+                    # Split the various letters into their own arguments
+                    true;
+                }
+            ;;
+
+            *) ;; # If it's not a flag, don't do anything
+        esac
+    done
+}
+
+args () {
+    # Argument interpreter.
+    # $1 is always an action.
+    case "$1" in
+        i|install)
+            shift 1
+            # Place install here.
+        ;;
+        u|upgrade)
+            shift 1
+            # Place upgrade here.
+        ;;
+        r|remove)
+            shift 1
+            # Place remove here.
+        ;;
+        p|patch)
+            shift 1
+            # Place patch here.
+        ;;
+        h|help)
+            usage
+        ;;
+        *)
+            usage
+            die "Not a valid action."
+        ;;
+    esac
 }
