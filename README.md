@@ -6,7 +6,7 @@ To install sea, just use the install script.
 
 ```
 $ git clone https://github.com/h34ting4ppliance/sea.git
-$ sudo install.sh
+# install.sh
 ```
 
 ## Managing packages
