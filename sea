@@ -36,6 +36,7 @@ Actions:
     u, upgrade [pkg]     | update package(s) to latest versions
 
 EOF
+    exit 0 # Prevent anything further from happning when this is called.
 }
 
 flags () {
@@ -59,7 +60,33 @@ flags () {
 }
 
 args () {
-    printf "soon"
+    # Argument interpreter.
+    # $1 is always an action.
+    case "$1" in
+        i|install)
+            shift 1
+            # Place install here.
+        ;;
+        u|upgrade)
+            shift 1
+            # Place upgrade here.
+        ;;
+        r|remove)
+            shift 1
+            # Place remove here.
+        ;;
+        p|patch)
+            shift 1
+            # Place patch here.
+        ;;
+        h|help)
+            usage
+        ;;
+        *)
+            usage
+            die "Not a valid action."
+        ;;
+    esac
 }
 
 pkg_get () {
@@ -70,9 +97,8 @@ pkg_get () {
     packages=""
     # Get the categories.
     htmlret=$(curl "${drepo}/repo/" -s -o "/tmp/$$/categories" -w '%{http_code}') || die "Unable to fetch the repo categories."
-
     [ "${htmlret}" != "200" ] && die "ERROR ${htmlret}\n $(cat /tmp/$$/cateogries)"
-    
+
     # Gets all the packages available
     for x in /tmp/$$/categories; do
         htmlret=$(curl "${drepo}/repo/${x}/" -s -o "/tmp/$$/packages" -w '%{http_code}') || die "Unable to fetch the repo packages."
@@ -81,7 +107,7 @@ pkg_get () {
         for y in /tmp/$$/categories; do
             [ "${y}" = "${1}" ] && {
                 packages="${packages}${x} "
-                break 
+                break
             }
         done
     done
@@ -93,8 +119,8 @@ pkg_get () {
 pkg_extract () {
     # extracts a package to a working directory, changes directories to said working directory
     mkdir -p "/tmp/$$/$1" || die "Unable to create working directory. Exiting."
-    tar -vxf "$1.tar.gz" -C "/tmp/$$/$1" 
-    cd "/tmp/$$/$1" 
+    tar -vxf "$1.tar.gz" -C "/tmp/$$/$1"
+    cd "/tmp/$$/$1"
 }
 
 pkg_depends () {
