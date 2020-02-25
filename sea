@@ -127,13 +127,13 @@ pkg_depends () {
     # Resolves dependencies of a package.
     # Assumes that the directory has been created, and the PWD is the directory.
     if test -e depends; then
-        for line in depends; do # TODO
+        while read -r line; do
             if [ "$(command -v ${line} > /dev/null)" ]; then
                 log "Dependency ${line} present."
             else
                 warn "Dependency ${line} missing."
             fi
-        done
+        done < depends
     else
         log "No dependency file found."
     fi
