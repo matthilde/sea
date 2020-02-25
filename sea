@@ -38,6 +38,26 @@ Actions:
 EOF
 }
 
+flags () {
+    command_flags=""
+    for arg in "$@"; do
+        case $arg in
+            ---*) ;; # Not too long!
+            --*) [ -z "${command_flags}" ] && command_flags="${arg}" || command_flags="${command_flags}, ${arg}" ;;
+            -*)
+                # Check that flags without args that use the shortened syntax (-abcdef...) are accounted for.
+                # Short flags should never go beyond 2 chars in theory.
+                [ "${#arg}" -gt 2 ] && {
+                    # Split the various letters into their own arguments
+                    true;
+                }
+            ;;
+
+            *) ;; # If it's not a flag, don't do anything
+        esac
+    done
+}
+
 args () {
     printf "soon"
 }
@@ -49,40 +69,43 @@ pkg_get () {
 
     packages=""
     # Get the categories.
-    htmlret=$(curl "$drepo/repo/" -s -o "/tmp/$$/categories" -w '%{http_code}') || die "Unable to fetch the repo categories."
+    htmlret=$(curl "${drepo}/repo/" -s -o "/tmp/$$/categories" -w '%{http_code}') || die "Unable to fetch the repo categories."
 
-    [ "$htmlret" != "200" ] && die "ERROR $htmlret\n $(cat /tmp/$$/cateogries)"
+    [ "${htmlret}" != "200" ] && die "ERROR ${htmlret}\n $(cat /tmp/$$/cateogries)"
     
     # Gets all the packages available
     for x in /tmp/$$/categories; do
-        htmlret=$(curl "$drepo/repo/$x/" -s -o "/tmp/$$/packages" -w '%{http_code}') || die "Unable to fetch the repo packages."
-        [ "$htmlret" != "200" ] && die "ERROR $htmlret\n $(cat /tmp/$$/packages)"
+        htmlret=$(curl "${drepo}/repo/${x}/" -s -o "/tmp/$$/packages" -w '%{http_code}') || die "Unable to fetch the repo packages."
+        [ "${htmlret}" != "200" ] && die "ERROR ${htmlret}\n $(cat /tmp/$$/packages)"
 
         for y in /tmp/$$/categories; do
-            [ "$y" == "$1" ] && packages=$packages"$x "; break
+            [ "${y}" = "${1}" ] && {
+                packages="${packages}${x} "
+                break 
+            }
         done
     done
 
     # Return nothing if there are no categories available for the package.
-    printf "$packages"
+    printf '%s' "$packages"
 }
 
 pkg_extract () {
     # extracts a package to a working directory, changes directories to said working directory
     mkdir -p "/tmp/$$/$1" || die "Unable to create working directory. Exiting."
-    tar -vxf "$1.tar.gz" -C "/tmp/$$/$1"
-    cd "/tmp/$$/$1"
+    tar -vxf "$1.tar.gz" -C "/tmp/$$/$1" 
+    cd "/tmp/$$/$1" 
 }
 
 pkg_depends () {
     # Resolves dependencies of a package.
     # Assumes that the directory has been created, and the PWD is the directory.
     if test -e depends; then
-        for line in depends; do
-            if [ "$(command -v $line)" ]; then
-                log "Dependency $line present."
+        for line in depends; do # TODO
+            if [ "$(command -v ${line} > /dev/null)" ]; then
+                log "Dependency ${line} present."
             else
-                warn "Dependency $line missing."
+                warn "Dependency ${line} missing."
             fi
         done
     else
@@ -100,7 +123,7 @@ pkg_install () {
     # Assumption is at this point, we are in the install directory.
     while test -e "$SEA_INSTALL/$1"; do
         log "The name of this package is taken. Please give another."
-        read -r $1
+        read -r "$1"
     done
     mkdir -p "$SEA_DATABASE/meta/$1"
     cp depends "$SEA_DATABASE/meta/$1"
@@ -116,7 +139,7 @@ pkg_makepkg () (
     # This function runs within a subshell to avoid messing with $PWD.
     cd "$2" || warn "Couldn't change directories into the target folder."
 
-    if [ [ -e depends ] && [ -e manifest ] && [ -e package ] && [ -e tags ] ]; then
+    if [ -e depends ] && [ -e manifest ] && [ -e package ] && [ -e tags ]; then
         tar -czvf "$1" depends manifest package tags || die "Unable to create archive."
     else
         die "Some neccessary package files are missing. Make sure all files are present."
@@ -133,16 +156,16 @@ pkg_submit () {
 
     if [ -e "$2" ]; then
         # Store the return code of the submit request.
-        htmlret=$(curl -Ffile=@"$2" "$drepo/submit/$1" -s -o "/tmp/$$/$1" -w '%{http_code}') || die "Unable to submit"
-        if [ "$htmlret" == "200" ]; then
+        htmlret=$(curl -Ffile=@"$2" "${drepo}/submit/$1" -s -o "/tmp/$$/$1" -w '%{http_code}') || die "Unable to submit"
+        if [ "${htmlret}" = "200" ]; then
             log "Successfully submitted the package!"
         else
-            die "ERROR $htmlret\n $(cat /tmp/$$/$1)"
+            die "ERROR ${htmlret}\n $(cat /tmp/$$/"$1")"
         fi
     else
         # Dies if there is no specified file.
         die "File not specified."
     fi
 
-    rm -rf /tmp/$$/$1
+    rm -rf /tmp/$$/"$1"
 }
