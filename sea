@@ -27,6 +27,7 @@ Usage: sea [OPTION] [ACTION] <ARGS>
 Options: TBA
 
 Actions:
+    h, help              | view this help menu
     i, install <pkg>     | install package(s)
     o, options           | configure sea
     p, patch <pkg>       | apply a patch to a package
@@ -155,10 +156,11 @@ flags () {
             -*)
                 # Check that flags without args that use the shortened syntax (-abcdef...) are accounted for.
                 # Short flags should never go beyond 2 chars in theory.
-                [ "${#arg}" -gt 2 ] && {
-                    # Split the various letters into their own arguments
-                    true;
-                }
+                if [ "${#arg}" -gt 2 ]; then
+                    true
+                else
+                    true
+                fi
             ;;
 
             *) ;; # If it's not a flag, don't do anything
