@@ -6,6 +6,7 @@ To install sea, just use the install script.
 
 ```
 $ git clone https://github.com/h34ting4ppliance/sea.git
+$ cd sea
 # install.sh
 ```
 
