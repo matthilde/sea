@@ -1,6 +1,7 @@
 #!/bin/sh -e
 
 # sea, the POSIX shell-script package manager
+SEA_VERSION=Work-in-progress
 
 log () {
     # print fancy outputs
@@ -18,6 +19,25 @@ die () {
     exit 1
 }
 
+version () {
+    # prints the version of sea.
+    cat <<EOF
+
+      :::::::: ::::::::::    :::
+    :+:    :+::+:         :+: :+:
+   +:+       +:+        +:+   +:+
+  +#++:++#+++#++:++#  +#++:++#++:
+        +#++#+       +#+     +#+
+#+#    #+##+#       #+#     #+#
+######## #############     ###
+
+sea Package Manager. Version ${SEA_VERSION}
+GitHub Repo : https://github.com/h34ting4ppliance/sea
+Sea Webpage : https://sea.h3liu.ml/
+
+EOF
+}
+
 usage () {
     # prints the usage of a command depending on the arguments
     cat <<EOF
@@ -33,11 +53,10 @@ Actions:
     p, patch <pkg>       | apply a patch to a package
     q, query <mode> args | search for package(s)
     r, remove <pkg>      | remove package(s)
-    s, submit <file>     | upload package for approval
+    s, submit <file>     | upload package
     u, upgrade [pkg]     | update package(s) to latest versions
 
 EOF
-    exit 0 # Prevent anything further from happning when this is called.
 }
 
 pkg_get () {
@@ -179,13 +198,21 @@ args () {
         i|install)
             shift 1
             # For loop for each requested packages
-            for pkgs in $@; do
-                pkg_install "$(pkg_get ${1})"
+            for package in $@; do
+                # Fetches and installs every specified package.
+                pkg_install "$(pkg_get ${package})" || warn "Installation of ${package} has failed."
+            done
+            log "Packages has been successfully installed."
+        ;;
+        q|query)
+            shift 1
+            for package in $SEA_DATABASE; do
+                # TODO: Tags and author filters.
+                log "Package found: ${package}"
             done
         ;;
         u|upgrade)
             shift 1
-            # Place upgrade here.
         ;;
         r|remove)
             shift 1
@@ -194,6 +221,9 @@ args () {
         p|patch)
             shift 1
             # Place patch here.
+        ;;
+        v|version)
+            version
         ;;
         h|help)
             usage
@@ -204,3 +234,5 @@ args () {
         ;;
     esac
 }
+
+args $@
