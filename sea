@@ -57,14 +57,18 @@ pkg_get () {
 
         for y in /tmp/$$/categories; do
             [ "${y}" = "${1}" ] && {
-                packages="${packages}${x} "
+                packages="/tmp/$$/$1"
+                curl "${drepo}/repo/${x}/${1}" -o "${packages}"
                 break
             }
+
+            [ -z $packages ] || break
         done
     done
 
-    # Return nothing if there are no categories available for the package.
-    printf '%s' "$packages"
+    # Returns nothing if no package has been found.
+    # Else, return the path to the downloaded tarball.
+    print '%s' "${packages}"
 }
 
 pkg_extract () {
@@ -174,7 +178,10 @@ args () {
     case "$1" in
         i|install)
             shift 1
-            # Place install here.
+            # For loop for each requested packages
+            for pkgs in $@; do
+                pkg_install "$(pkg_get ${1})"
+            done
         ;;
         u|upgrade)
             shift 1
