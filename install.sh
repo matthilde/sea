@@ -12,6 +12,7 @@ die () {
     printf "%b\n" "\u001b[35m[x] \u001b[1m\u001b[31m$1"
     exit 1
 }
+
 [ "$(id -u)" != 0 ] || die "Script must be run as root."
 
 log "Checking for cURL..."
@@ -22,7 +23,9 @@ log "Checking for tar..."
 command -v tar || die "tar not present. Please install it with your package manager."
 log "tar present."
 
+log "Checking for gzip..."
+command -v gzip || die "gzip not present. Please install it with your package manager."
 # Actually start the install.
 
 cp sea /usr/bin
-# TODO: Add documentation then install it.
+gzip -c sea.1>/usr/share/man/man1/sea.1.gz
