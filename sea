@@ -133,6 +133,20 @@ pkg_install () {
     mv "$1" "$SEA_INSTALL"
 }
 
+pkg_remove () {
+    # Removes a package from the computer.
+    # Checks if the package exists
+    [ -d "${SEA_DATABASE}/meta/$1" ] || die "${1} doesn't exist."
+    # Checks if the location meta exists, skip executable deletion if not found.
+    if [ -z "${SEA_DATABASE}/meta/$1/location" ]; then
+        rm $(cat "${SEA_DATABASE}/meta/$1/location") || warn "Unable to delete the executable. Only deleting the meta"
+    else
+        warn "Location metadata missing. Only deleting the meta"
+    fi
+    
+    rm -rf "${SEA_DATABASE}/eta/$1" || warn "Metadata deletion failed."
+}
+
 pkg_makepkg () (
     # Checks if all files neccessary to make a package are present.
     # $1 is archive name, $2 is the directory that the package would be built from.
@@ -208,7 +222,7 @@ args () {
             shift 1
             for package in $SEA_DATABASE; do
                 # TODO: Tags and author filters.
-                log "Package found: ${package}"
+                printf "%s\n" "${package}"
             done
         ;;
         u|upgrade)
@@ -216,7 +230,9 @@ args () {
         ;;
         r|remove)
             shift 1
-            # Place remove here.
+            for package in $@; do
+                pkg_remove "${package}"
+            done
         ;;
         p|patch)
             shift 1
