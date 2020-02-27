@@ -2,6 +2,9 @@
 
 # sea, the POSIX shell-script package manager
 SEA_VERSION=Work-in-progress
+# Setting default values if they don't exist
+[ -z $SEA_DATABASE ] || SEA_DATABASE="/etc/sea.d/"
+[ -z $SEA_INSTALL ] || SEA_INSTALL="/usr/bin/"
 
 log () {
     # print fancy outputs
@@ -138,7 +141,7 @@ pkg_remove () {
     # Checks if the package exists
     [ -d "${SEA_DATABASE}/meta/$1" ] || die "${1} doesn't exist."
     # Checks if the location meta exists, skip executable deletion if not found.
-    if [ -z "${SEA_DATABASE}/meta/$1/location" ]; then
+    if [ -e "${SEA_DATABASE}/meta/$1/location" ]; then
         rm $(cat "${SEA_DATABASE}/meta/$1/location") || warn "Unable to delete the executable. Only deleting the meta"
     else
         warn "Location metadata missing. Only deleting the meta"
