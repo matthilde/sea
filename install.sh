@@ -28,4 +28,8 @@ command -v gzip || die "gzip not present. Please install it with your package ma
 # Actually start the install.
 
 cp sea /usr/bin
-gzip -c sea.1>/usr/share/man/man1/sea.1.gz
+# Do not install man if it is not installed.
+command -v man && {
+    gzip -c sea.1>/usr/share/man/man1/sea.1.gz
+    mandb
+}
