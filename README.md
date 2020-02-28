@@ -1,6 +1,8 @@
 # sea
 sea is a package manager written in POSIX shell script for POSIX shell scripts.
 
+**The package manager is actually in heavy stage of development, it is highly recommended to not download it.**
+
 ## Installation
 To install sea, just use the install script.
 
