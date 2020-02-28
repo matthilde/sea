@@ -187,6 +187,7 @@ pkg_submit () {
         die "File not specified."
     fi
 
+    log "Package Token: $(cat /tmp/$$/$1)"
     rm -rf /tmp/$$/"$1"
 }
 
@@ -214,6 +215,7 @@ flags () {
 args () {
     # Argument interpreter.
     # $1 is always an action.
+    mkdir /tmp/$$
     case "$1" in
         i|install)
             shift 1
@@ -227,10 +229,27 @@ args () {
         ;;
         q|query)
             shift 1
-            for package in $SEA_DATABASE; do
+            # TODO : Fix this.
+            for package in $SEA_DATABASE/meta/*; do
                 # TODO: Tags and author filters.
                 printf "%s\n" "${package}"
             done
+        ;;
+        s|submit)
+            shift 1
+            # To submit a package, you just need to set the current working directory to where the package files you have prepared.
+            # The tarball must contain the members this way :
+            # package
+            # manifest
+            # etc..
+            
+            # And not
+            # ./package
+            # ./path/to/whatever/manifest
+            # etc../etc..
+
+            pkg_makepkg "/tmp/$$/$1.tar.gz" || die "The creation of ${1} has failed."
+            pkg_submit "$1" "/tmp/$$/$1.tar.gz" || die "The submission of ${1} has failed."
         ;;
         u|upgrade)
             shift 1
@@ -256,6 +275,8 @@ args () {
             die "Not a valid action."
         ;;
     esac
+
+    rm -rf /tmp/$$
 }
 
 args $@
