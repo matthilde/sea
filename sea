@@ -145,7 +145,7 @@ pkg_remove () {
     [ -d "${SEA_DATABASE}/meta/$1" ] || die "${1} doesn't exist."
     # Checks if the location meta exists, skip executable deletion if not found.
     if [ -e "$SEA_DATABASE/meta/$1/location" ]; then
-        rm "$SEA_DATABASE/meta/$1/location" || warn "Unable to delete the executable. Only deleting the meta"
+        rm -f "$SEA_DATABASE/meta/$1/location" || warn "Unable to delete the executable. Only deleting the meta"
     else
         warn "Location metadata missing. Only deleting the meta"
     fi
