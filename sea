@@ -147,7 +147,7 @@ pkg_install () {
     asroot cp depends "$SEA_DATABASE/meta/$2" || die "Unable to create depends."
     asroot cp manifest "$SEA_DATABASE/meta/$2" || die "Unable to create manifest."
     asroot cp tags "$SEA_DATABASE/meta/$2" || die "Unable to create tags."
-    asroot printf "%s" "$SEA_INSTALL/$2" | asroot tee "$SEA_DATABASE/meta/$2/location"
+    asroot printf "%s" "$SEA_INSTALL/$2" | asroot tee "$SEA_DATABASE/meta/$2/location" >/dev/null
     # chmod the executable before adding it.
     asroot chmod a+x package
     asroot mv "package" "$SEA_INSTALL/$2"
