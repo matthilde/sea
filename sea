@@ -3,8 +3,8 @@
 # sea, the POSIX shell-script package manager
 SEA_VERSION=Work-in-progress
 # Setting default values if they don't exist
-[ -z $SEA_DATABASE ] && export SEA_DATABASE="/etc/sea.d"
-[ -z $SEA_INSTALL ] && export SEA_INSTALL="/usr/bin"
+[ -z "$SEA_DATABASE" ] && export SEA_DATABASE="/etc/sea.d"
+[ -z "$SEA_INSTALL" ] && export SEA_INSTALL="/usr/bin"
 
 log () {
     # print fancy outputs
@@ -72,21 +72,21 @@ pkg_get () {
     htmlret=$(curl "${drepo}/repo/" -s -o "/tmp/$$/categories" -w '%{http_code}') || die "Unable to fetch the repo categories."
     [ "${htmlret}" != "200" ] && die "ERROR ${htmlret}\n $(cat /tmp/$$/cateogries)"
     # Gets all the packages available
-    for x in $(cat /tmp/$$/categories); do
+    while read -r x; do
         log "Current Category: ${x}"
         htmlret=$(curl "${drepo}/repo/${x}/" -s -o "/tmp/$$/packages" -w '%{http_code}') || die "Unable to fetch the repo packages."
         [ "${htmlret}" != "200" ] && die "ERROR ${htmlret}\n $(cat /tmp/$$/packages)"
 
-        for y in $(cat /tmp/$$/packages); do
+        while read -r y; do
             [ "${y}" = "${1}" ] && {
                 packages="/tmp/$$/$1.tar.gz"
                 curl "${drepo}/repo/${x}/${1}" -s -o "${packages}" || die "Package fetching failed."
                 break
             }
 
-            [ -z $packages ] || break
-        done
-    done
+            [ -z "$packages" ] || break
+        done </tmp/$$/packages
+    done </tmp/$$/categories
 
     # Returns nothing if no package has been found.
     # Else, return the path to the downloaded tarball.
@@ -104,8 +104,8 @@ pkg_depends () {
     # Resolves dependencies of a package.
     # Assumes that the directory has been created, and the PWD is the directory.
     if [ -e depends ]; then
-        for line in $(cat depends); do
-            if [ -e "$(command -v "$line")" ]; then
+        while read -r line; do
+            if command -v "$line"; then
                 log "Dependency $line present."
             else
                 warn "Dependency $line missing."
@@ -133,9 +133,9 @@ pkg_install () {
     cp depends "$SEA_DATABASE/meta/$2"
     cp manifest "$SEA_DATABASE/meta/$2"
     cp tags "$SEA_DATABASE/meta/$2"
-    printf "${SEA_INSTALL}/$2" > "${SEA_DATABASE}/meta/${2}/location"
+    printf "%s" "$SEA_INSTALL/$2" > "$SEA_DATABASE/meta/${2}/location"
     # chmod the executable before adding it.
-    chmod +x package
+    chmod a+x package
     mv "package" "$SEA_INSTALL/$2"
 }
 
@@ -144,13 +144,12 @@ pkg_remove () {
     # Checks if the package exists
     [ -d "${SEA_DATABASE}/meta/$1" ] || die "${1} doesn't exist."
     # Checks if the location meta exists, skip executable deletion if not found.
-    if [ -e "${SEA_DATABASE}/meta/$1/location" ]; then
-        rm $(cat "${SEA_DATABASE}/meta/$1/location") || warn "Unable to delete the executable. Only deleting the meta"
+    if [ -e "$SEA_DATABASE/meta/$1/location" ]; then
+        rm "$SEA_DATABASE/meta/$1/location" || warn "Unable to delete the executable. Only deleting the meta"
     else
         warn "Location metadata missing. Only deleting the meta"
     fi
-    
-    rm -rf "${SEA_DATABASE}/meta/$1" || warn "Metadata deletion failed."
+    rm -rf "$SEA_DATABASE/meta/$1" || warn "Metadata deletion failed."
 }
 
 pkg_makepkg () (
@@ -187,7 +186,7 @@ pkg_submit () {
         die "File not specified."
     fi
 
-    log "Package Token: $(cat /tmp/$$/$1)"
+    log "Package Token: $(cat /tmp/$$/$1)" #Gross, why? You've made shellcheck complain.
     rm -rf /tmp/$$/"$1"
 }
 
@@ -215,12 +214,12 @@ flags () {
 args () {
     # Argument interpreter.
     # $1 is always an action.
-    mkdir /tmp/$$
+    mkdir "/tmp/$$"
     case "$1" in
         i|install)
             shift 1
             # For loop for each requested packages
-            for package in $@; do
+            for package in "$@"; do
                 # Fetches and installs every specified package.
                 pkg_get "${package}" || die "Unable to fetch package."
                 pkg_install "/tmp/$$/${package}" "${package}" || warn "Installation of ${package} has failed."
@@ -230,7 +229,7 @@ args () {
         q|query)
             shift 1
             # TODO : Fix this.
-            for package in $SEA_DATABASE/meta/*; do
+            for package in "$SEA_DATABASE/meta/*"; do
                 # TODO: Tags and author filters.
                 printf "%s\n" "${package}"
             done
@@ -242,7 +241,6 @@ args () {
             # package
             # manifest
             # etc..
-            
             # And not
             # ./package
             # ./path/to/whatever/manifest
@@ -256,7 +254,7 @@ args () {
         ;;
         r|remove)
             shift 1
-            for package in $@; do
+            for package in "$@"; do
                 pkg_remove "${package}"
             done
         ;;
@@ -276,7 +274,7 @@ args () {
         ;;
     esac
 
-    rm -rf /tmp/$$
+    rm -rf "/tmp/$$"
 }
 
-args $@
+args "$@"
