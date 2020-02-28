@@ -22,6 +22,7 @@ die () {
     exit 1
 }
 
+
 version () {
     # prints the version of sea.
     cat <<EOF
@@ -95,7 +96,6 @@ pkg_get () {
 
 pkg_extract () {
     # extracts a package to a working directory, changes directories to said working directory
-    mkdir -p "/tmp/$$/$1" || die "Unable to create working directory. Exiting."
     tar -vxf "$1.tar.gz" -C "/tmp/$$/$1"
     cd "/tmp/$$/$1"
 }
