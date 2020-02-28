@@ -229,7 +229,7 @@ args () {
         q|query)
             shift 1
             # TODO : Fix this.
-            for package in "$SEA_DATABASE/meta/*"; do
+            for package in "$SEA_DATABASE"/meta/*; do
                 # TODO: Tags and author filters.
                 printf "%s\n" "${package}"
             done

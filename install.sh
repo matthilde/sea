@@ -13,7 +13,7 @@ die () {
     exit 1
 }
 
-[ "$(id -u)" != 0 ] || die "Script must be run as root."
+[ "$(id -u)" = 0 ] || die "Script must be run as root."
 
 log "Checking for cURL..."
 command -v curl || die "cURL not present. Please install it with your package manager."
