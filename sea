@@ -62,25 +62,40 @@ Actions:
 EOF
 }
 
+asroot () {
+    # Gain root permissions using su, sudo or doas.
+    # Hurrah, portability.
+    if [ "$(id -u)" != 0 ]; then
+        if command -v sudo >/dev/null; then
+            sudo -E -- "$@"
+        elif command -v doas >/dev/null; then
+            doas -- "$@"
+        else
+            # This is an else because I don't think it's possible to *not* have su on a system."
+            su -pc "$*"
+        fi
+    fi
+}
+
 pkg_get () {
     # Fetches a package.
     # The default repo is used, unless $3 exists.
     drepo=${2:-'https://sea.h3liu.ml'}
     packages=""
     # Get the categories.
-    mkdir /tmp/$$
-    htmlret=$(curl "${drepo}/repo/" -s -o "/tmp/$$/categories" -w '%{http_code}') || die "Unable to fetch the repo categories."
-    [ "${htmlret}" != "200" ] && die "ERROR ${htmlret}\n $(cat /tmp/$$/cateogries)"
+    mkdir "/tmp/$$" 2>/dev/null
+    htmlret=$(curl "$drepo/repo/" -s -o "/tmp/$$/categories" -w '%{http_code}') || die "Unable to fetch the repo categories."
+    [ "$htmlret" != "200" ] && die "ERROR $htmlret\n $(cat /tmp/$$/cateogries)"
     # Gets all the packages available
     while read -r x; do
-        log "Current Category: ${x}"
-        htmlret=$(curl "${drepo}/repo/${x}/" -s -o "/tmp/$$/packages" -w '%{http_code}') || die "Unable to fetch the repo packages."
-        [ "${htmlret}" != "200" ] && die "ERROR ${htmlret}\n $(cat /tmp/$$/packages)"
+        log "Current Category: $x"
+        htmlret=$(curl "$drepo/repo/$x/" -s -o "/tmp/$$/packages" -w '%{http_code}') || die "Unable to fetch the repo packages."
+        [ "$htmlret" != "200" ] && die "ERROR $htmlret\n $(cat /tmp/$$/packages)"
 
         while read -r y; do
-            [ "${y}" = "${1}" ] && {
+            [ "$y" = "$1" ] && {
                 packages="/tmp/$$/$1.tar.gz"
-                curl "${drepo}/repo/${x}/${1}" -s -o "${packages}" || die "Package fetching failed."
+                curl "$drepo/repo/$x/$1" -s -o "$packages" >/dev/null || die "Package fetching failed."
                 break
             }
 
@@ -90,13 +105,12 @@ pkg_get () {
 
     # Returns nothing if no package has been found.
     # Else, return the path to the downloaded tarball.
-    printf '%s' "${packages}"
 }
 
 pkg_extract () {
     # extracts a package to a working directory, changes directories to said working directory
-    mkdir -p "/tmp/$$/$1" || die "Unable to create working directory. Exiting."
-    tar -vxf "$1.tar.gz" -C "/tmp/$$/$1"
+    mkdir -p "/tmp/$$/$1" 2>/dev/null || die "Unable to create working directory. Exiting."
+    tar -xf "$1.tar.gz" -C "/tmp/$$/$1" >/dev/null
     cd "/tmp/$$/$1"
 }
 
@@ -105,7 +119,7 @@ pkg_depends () {
     # Assumes that the directory has been created, and the PWD is the directory.
     if [ -e depends ]; then
         while read -r line; do
-            if command -v "$line"; then
+            if command -v "$line" >/dev/null; then
                 log "Dependency $line present."
             else
                 warn "Dependency $line missing."
@@ -129,27 +143,29 @@ pkg_install () {
         log "The name of this package is taken. Please give another."
         read -r "$1"
     done
-    mkdir -p "$SEA_DATABASE/meta/$2"
-    cp depends "$SEA_DATABASE/meta/$2"
-    cp manifest "$SEA_DATABASE/meta/$2"
-    cp tags "$SEA_DATABASE/meta/$2"
-    printf "%s" "$SEA_INSTALL/$2" > "$SEA_DATABASE/meta/${2}/location"
+    asroot mkdir -p "$SEA_DATABASE/meta/$2" || die "Unable to create metadata."
+    asroot cp depends "$SEA_DATABASE/meta/$2" || die "Unable to create depends."
+    asroot cp manifest "$SEA_DATABASE/meta/$2" || die "Unable to create manifest."
+    asroot cp tags "$SEA_DATABASE/meta/$2" || die "Unable to create tags."
+    asroot printf "%s" "$SEA_INSTALL/$2" | asroot tee "$SEA_DATABASE/meta/$2/location" >/dev/null
     # chmod the executable before adding it.
-    chmod a+x package
-    mv "package" "$SEA_INSTALL/$2"
+    asroot chmod a+x package
+    asroot mv "package" "$SEA_INSTALL/$2"
 }
 
 pkg_remove () {
     # Removes a package from the computer.
     # Checks if the package exists
-    [ -d "${SEA_DATABASE}/meta/$1" ] || die "${1} doesn't exist."
+    [ -d "${SEA_DATABASE}/meta/$1" ] || die "$1 doesn't exist."
     # Checks if the location meta exists, skip executable deletion if not found.
     if [ -e "$SEA_DATABASE/meta/$1/location" ]; then
-        rm -f "$SEA_DATABASE/meta/$1/location" || warn "Unable to delete the executable. Only deleting the meta"
+        log "Removing package executable."
+        asroot rm -f "$(cat $SEA_DATABASE/meta/$1/location)" || warn "Unable to delete the executable. Only deleting the meta"
     else
         warn "Location metadata missing. Only deleting the meta"
     fi
-    rm -rf "$SEA_DATABASE/meta/$1" || warn "Metadata deletion failed."
+    log "Removing package metadata."
+    asroot rm -rf "$SEA_DATABASE/meta/$1" || warn "Metadata deletion failed."
 }
 
 pkg_makepkg () (
@@ -157,7 +173,6 @@ pkg_makepkg () (
     # $1 is archive name, $2 is the directory that the package would be built from.
     # This function runs within a subshell to avoid messing with $PWD.
     cd "$2" || warn "Couldn't change directories into the target folder."
-
     if [ -e depends ] && [ -e manifest ] && [ -e package ] && [ -e tags ]; then
         tar -czvf "$1" depends manifest package tags || die "Unable to create archive."
     else
@@ -175,8 +190,8 @@ pkg_submit () {
 
     if [ -e "$2" ]; then
         # Store the return code of the submit request.
-        htmlret=$(curl -Ffile=@"$2" "${drepo}/submit/$1" -s -o "/tmp/$$/$1" -w '%{http_code}') || die "Unable to submit"
-        if [ "${htmlret}" = "200" ]; then
+        htmlret=$(curl -Ffile=@"$2" "$drepo/submit/$1" -s -o "/tmp/$$/$1" -w '%{http_code}') || die "Unable to submit"
+        if [ "$htmlret" = "200" ]; then
             log "Successfully submitted the package!"
         else
             die "ERROR ${htmlret}\n $(cat /tmp/$$/"$1")"
@@ -187,7 +202,7 @@ pkg_submit () {
     fi
 
     log "Package Token: $(cat /tmp/$$/$1)" #Gross, why? You've made shellcheck complain.
-    rm -rf /tmp/$$/"$1"
+    rm -rf "/tmp/$$/$1"
 }
 
 flags () {
@@ -214,7 +229,7 @@ flags () {
 args () {
     # Argument interpreter.
     # $1 is always an action.
-    mkdir "/tmp/$$"
+    mkdir -p "/tmp/$$" >/dev/null
     case "$1" in
         i|install)
             shift 1
@@ -222,16 +237,16 @@ args () {
             for package in "$@"; do
                 # Fetches and installs every specified package.
                 pkg_get "${package}" || die "Unable to fetch package."
-                pkg_install "/tmp/$$/${package}" "${package}" || warn "Installation of ${package} has failed."
+                pkg_install "/tmp/$$/$package" "$package" || die "Installation of $package has failed."
             done
-            log "Packages has been installed."
+            log "Package(s) have been installed."
         ;;
         q|query)
             shift 1
             # TODO : Fix this.
             for package in "$SEA_DATABASE"/meta/*; do
                 # TODO: Tags and author filters.
-                printf "%s\n" "${package}"
+                printf "%s\n" "$package"
             done
         ;;
         s|submit)
@@ -246,8 +261,8 @@ args () {
             # ./path/to/whatever/manifest
             # etc../etc..
 
-            pkg_makepkg "/tmp/$$/$1.tar.gz" || die "The creation of ${1} has failed."
-            pkg_submit "$1" "/tmp/$$/$1.tar.gz" || die "The submission of ${1} has failed."
+            pkg_makepkg "/tmp/$$/$1.tar.gz" || die "The creation of $1 has failed."
+            pkg_submit "$1" "/tmp/$$/$1.tar.gz" || die "The submission of $1 has failed."
         ;;
         u|upgrade)
             shift 1
@@ -255,7 +270,7 @@ args () {
         r|remove)
             shift 1
             for package in "$@"; do
-                pkg_remove "${package}"
+                pkg_remove "$package"
             done
         ;;
         p|patch)
@@ -273,7 +288,6 @@ args () {
             die "Not a valid action."
         ;;
     esac
-
     rm -rf "/tmp/$$"
 }
 
