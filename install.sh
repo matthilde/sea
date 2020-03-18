@@ -31,5 +31,5 @@ install -Dm755 sea "$PREFIX/bin"
 # Do not install man if it is not installed.
 command -v man >/dev/null && {
     gzip -c sea.1>/usr/share/man/man1/sea.1.gz
-    mandb >/dev/null
+    mandb >/dev/null | mandoc >/dev/null
 }
