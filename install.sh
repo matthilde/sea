@@ -1,7 +1,7 @@
 #!/bin/sh -e
 
 # Installation script for sea
-
+PREFIX=/usr
 log () {
     # print fancy outputs
     printf "%b\n" "\u001b[36m[#] \u001b[0m$1"
@@ -27,7 +27,7 @@ log "Checking for gzip..."
 command -v gzip || die "gzip not present. Please install it with your package manager."
 # Actually start the install.
 
-cp sea /usr/bin
+install -Dm755 sea "$PREFIX/bin"
 # Do not install man if it is not installed.
 command -v man && {
     gzip -c sea.1>/usr/share/man/man1/sea.1.gz
